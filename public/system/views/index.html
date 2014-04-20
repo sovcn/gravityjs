@@ -1,3 +1,12 @@
-<section data-ng-controller="IndexController">
-	<h1 mean-token="'home-default'">This is the home view</h1>
+<section data-ng-controller="IndexController" data-ng-init="load()">
+	<h1 mean-token="'home-default'">Welcome to ChronoGraph</h1>
+	
+	<div style="text-align: center;" data-ng-show="global.authenticated">
+		View <a data-ng-href="#!/graphs">Your Graphs</a> Here.
+	</div>
+	
+	<div style="text-align: center;" data-ng-hide="global.authenticated">
+		Please <a data-ng-href="#!/graphs">Login</a>.
+	</div>
+	
 </section>

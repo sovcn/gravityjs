@@ -8,12 +8,12 @@ angular.module('mean.system').controller('HeaderController', ['$scope', '$rootSc
         // Default hard coded menu items for main menu
         var defaultMainMenu = [{
             'roles': ['authenticated'],
-            'title': 'Articles',
-            'link': 'all articles'
+            'title': 'Graphs',
+            'link': 'all graphs'
         }, {
             'roles': ['authenticated'],
-            'title': 'Create New Article',
-            'link': 'create article'
+            'title': 'Create New Graph',
+            'link': 'create graph'
         }];
 
         // Query menus added by modules. Only returns menus that user is allowed to see.
@@ -25,7 +25,7 @@ angular.module('mean.system').controller('HeaderController', ['$scope', '$rootSc
             }, function(menu) {
                 $scope.menus[name] = menu;
             });
-        }
+        };
 
         // Query server for menus and check permissions
         queryMenu('main', defaultMainMenu);

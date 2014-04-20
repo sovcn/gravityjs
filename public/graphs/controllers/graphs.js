@@ -4,12 +4,12 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
     $scope.global = Global;
     
     // Default to JSON format
-    var DEFAULT_FORMAT = "JSON";
+    var DEFAULT_FORMAT = 'JSON';
     $scope.format = DEFAULT_FORMAT;
     
     $scope.create = function() {
     	
-    	if( this.format != "JSON" && this.format != "XML" )
+    	if( this.format !== 'JSON' && this.format !== 'XML' )
     		this.format = DEFAULT_FORMAT;
     	
     	// TODO - input format validation...
@@ -68,7 +68,7 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             graphId: $stateParams.graphId
         }, function(graph) {
             $scope.graph = graph;
-            if( graph.format == chronograph.data.JSON ){
+            if( graph.format === chronograph.data.JSON ){
             	$scope.parsedData = JSON.stringify(JSON.parse(graph.data), null, '\t');
             }
             else{
@@ -86,18 +86,9 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             $scope.graph = graph;
             var graphObj;
             
-            /*switch(graph.format){
-            case 'XML':
-            	graphObj = chronograph.newGraph(graph._id, graph.name, chronograph.textToXML(graph.data), chronograph.data.XML);
-            	break;
-            case 'JSON':
-            default:
-        		graphObj = chronograph.newGraph(graph._id, graph.name, JSON.parse(graph.data), chronograph.data.JSON);
-        		break;
-            }*/
             graphObj = chronograph.newGraph(graph._id, graph.name, graph.data, graph.format);
             
-            gravity.load("#chronograph_container", graphObj);
+            gravity.load('#chronograph_container', graphObj);
         });
     	
     };
@@ -128,7 +119,7 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
                 });
             }
             catch(e){
-            	if(e.name != "ChronographException" )
+            	if(e.name !== 'ChronographException' )
             		throw e;
             	
             	// Handle the error.
