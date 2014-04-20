@@ -103,4 +103,4 @@ angular.module('mean.graphs').config(['$stateProvider', '$urlRouterProvider',
                 }
             });
     }
-])
+]);

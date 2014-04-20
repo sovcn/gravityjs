@@ -125,19 +125,6 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             	// Handle the error.
             	console.error(e.message);
             }
-            
-            /*switch(graph.format){
-            case 'XML':
-            	graphObj = chronograph.newGraph(graph._id, graph.name, chronograph.textToXML(graph.data), chronograph.data.XML);
-            	break;
-            case 'JSON':
-            default:
-        		graphObj = chronograph.newGraph(graph._id, graph.name, JSON.parse(graph.data), chronograph.data.JSON);
-        		break;
-            }*/
-            //graphObj = chronograph.newGraph(graph._id, graph.name, graph.data, graph.format);
-            
-            //gravity.load("#chronograph_container", graphObj);
         });
     };
 }]);
