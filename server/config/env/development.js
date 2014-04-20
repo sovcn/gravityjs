@@ -3,12 +3,12 @@
 module.exports = {
     db: 'mongodb://localhost/mean-dev',
     app: {
-        name: 'MEAN - FullStack JS - Development'
+        name: 'MEAN - A Modern Stack - Development'
     },
     facebook: {
-        clientID: 'APP_ID',
-        clientSecret: 'APP_SECRET',
-        callbackURL: 'http://localhost:3000/auth/facebook/callback'
+        clientID: '238811112971287',
+        clientSecret: 'cdf383c9eab970e2556995b69da4eda6',
+        callbackURL: 'http://kellysmith.cloudapp.net:3000/auth/facebook/callback'
     },
     twitter: {
         clientID: 'CONSUMER_KEY',

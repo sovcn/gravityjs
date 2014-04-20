@@ -1,0 +1,18 @@
+<section data-ng-controller="GraphsController" data-ng-init="findOne()">
+    <span>{{graph.name}}</span>
+    
+    <div data-ng-show="global.user._id == graph.user._id">
+        <a class="btn" href="/#!/graphs/{{graph._id}}/edit">
+        	<i class="glyphicon glyphicon-edit"></i>
+        </a>
+        <a class="btn" data-ng-click="remove();">
+            <i class="glyphicon glyphicon-trash"></i>
+        </a>
+    </div>
+    <br />
+    <a data-ng-href="#!/graphs/{{graph._id}}/chronograph">Open in ChronoGraph</a> |
+    <a data-ng-href="#!/graphs/{{graph._id}}/import-traversal">Import Traversal Data</a> |
+    <span>Format: {{ graph.format }}</span>
+    <pre>{{ parsedData }}</pre>
+    
+</section>

@@ -11,3 +11,4 @@ test/coverage/
 modules/public/
 modules/views/
 /public/build/
+/public/system/lib

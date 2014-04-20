@@ -1,0 +1,8 @@
+<section data-ng-controller="GraphsController" data-ng-init="find()">
+	<ul class="graphs unstyled">
+		<li data-ng-repeat="graph in graphs">
+			<span><a data-ng-href="#!/graphs/{{graph._id}}">{{graph.name}}</a></span>
+		</li>
+	</ul>
+	<h1 data-ng-hide="!graphs || graphs.length">No graphs yet. <br> Why don't you <a href="/#!/graphs/create">Create One</a>?</h1>
+</section>
