@@ -1,3 +1,28 @@
 <section data-ng-controller="GraphsController" data-ng-init="chronograph()">
-	<div id="chronograph_container"></div>
+	<div id="chronograph_container">
+		<div id="left_container" style="height: 955px;">
+			<div id="top_controller" style="border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(204, 204, 204); height: 40px;">
+				<div id="play_button_container">
+					Play Container
+				</div>
+				<div id="timeline_container">
+					Timeline Container
+				</div>
+			</div>
+			<div id="graph_container" style="display: block"></div>
+		</div>
+		<div id="right_container">
+			<div id="side_controller"></div>
+			<table id="menu_panel" width="100%">
+				<tbody>
+					<tr>
+						<td id="edit_graph_button" class=""><span>Edit</span></td>
+						<td id="save_graph_button" style="display: none;"><span>Save</span></td>
+						<td id="cancel_edit_button" style="display: none;"><span>Cancel</span></td>
+					</tr>
+				</tbody>
+			</table>
+			<div id="edit_menu" style="display: none;"></div>
+		</div>
+	</div>
 </section>

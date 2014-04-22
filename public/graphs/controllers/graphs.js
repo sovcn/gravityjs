@@ -88,7 +88,9 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             
             graphObj = chronograph.newGraph(graph._id, graph.name, graph.data, graph.format);
             
-            gravity.load('#chronograph_container', graphObj);
+            graphObj.draw('#graph_container');
+            graphObj.setMode("view");
+            //gravity.load('#chronograph_container', graphObj);
         });
     	
     };
