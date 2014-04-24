@@ -90,6 +90,11 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             
             graphObj.draw('#graph_container');
             graphObj.setMode("view");
+
+            var timeline = chronograph.newTimeline("#timeline_container", "#play_button_container", [0, 500], [0, graphObj.maxSteps], function(value){
+                graphObj.setArbitraryTimeStep(value);
+            });
+            timeline.draw();
             //gravity.load('#chronograph_container', graphObj);
         });
     	

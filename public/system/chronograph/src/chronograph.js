@@ -1226,6 +1226,100 @@ var chronograph = {};
 			return null;
 		}
 	};
+
+
+	// Class Timeline
+	function Timeline(sliderContainer, playBtnContainer, domain, range, slideCallback){
+		var self = this;
+		self.sliderRange = domain;
+		self.graphRange = range;
+		self.slideCallback = slideCallback;
+		
+		self.sliderMax = 500;
+		self.playResolution = 20; // ms
+		self.playNumSteps = 500;
+		
+		self.playIntHandler = null;
+		
+		self.timelineScale = d3.scale.linear()
+									 .domain(self.sliderRange)
+									 .range(self.graphRange);
+
+		self.timelineContainer = $(sliderContainer);
+		self.playButtonContainer = $(playBtnContainer);
+	}
+	
+	Timeline.prototype.draw = function(){
+		var self = this;
+		self.createDOM();
+	};
+	
+	Timeline.prototype.createDOM = function(){
+		var self = this;
+		
+		var playButton = $("<button>").attr("id", "play_button");
+		playButton.button({
+			icons:{
+				primary: "ui-icon-play"
+			},
+			text: false
+		});
+		
+		var playStep = function(){
+			var currentValue = parseInt(self.timelineContainer.slider("value"));
+			var stepSize = self.sliderRange[1]/self.playNumSteps;
+			var newValue = currentValue + stepSize;
+			
+			if( newValue > parseInt(self.timelineContainer.slider("option", "max"))){
+				clearInterval(self.playIntHandler);
+				self.playIntHandler = null;
+				$(playButton).button("option", {
+					icons:{ primary: "ui-icon-play" }
+				});
+			}
+			else{
+				self.timelineContainer.slider("value", newValue);
+				self.slideCallback(self.timelineScale(newValue));
+			}
+		};
+		
+		playButton.click(function(){
+			if( self.playIntHandler == null ){
+				// Play!
+				var currentValue = parseInt(self.timelineContainer.slider("value"));
+				if( currentValue >= parseInt(self.timelineContainer.slider("option", "max")) - .05 ){
+					self.timelineContainer.slider("value", self.sliderRange[0]);
+				}
+				self.playIntHandler = setInterval(playStep, self.playResolution);
+				$(this).button("option", {
+					icons:{ primary: "ui-icon-pause" }
+				});
+			}
+			else{
+				clearInterval(self.playIntHandler);
+				self.playIntHandler = null;
+				$(this).button("option", {
+					icons:{ primary: "ui-icon-play" }
+				});
+			}
+		});
+		
+		self.playButtonContainer.append(playButton);
+		
+		self.timelineContainer.slider({
+			max: self.sliderMax,
+			slide: function(event, ui){
+				var value = $(this).slider("value");
+				self.slideCallback(self.timelineScale(value));
+			}
+		});
+		
+	};
+
+	// Timeline accessor.
+	chronograph.newTimeline = function(sliderContainer, playBtnContainer, domain, range, slideCallback){
+		return new Timeline(sliderContainer, playBtnContainer, domain, range, slideCallback);
+	};
 	
 	// https://gist.github.com/stevenaw/1305672
 	chronograph.textToXML = function ( text ) {
