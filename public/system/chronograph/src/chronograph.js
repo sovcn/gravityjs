@@ -522,6 +522,8 @@ var chronograph = {};
 		
 		// Initialize DOM structure
 		self.container = d3.select(cont);
+
+		self.container.html('');
 		
 		// Hide the svg container until everything has been initialized
 		self.container.style("display", "none");
@@ -1245,18 +1247,29 @@ var chronograph = {};
 									 .domain(self.sliderRange)
 									 .range(self.graphRange);
 
+		self.playSpeed = 1;
+		self.currentValue = 0;
+
+
 		self.timelineContainer = $(sliderContainer);
 		self.playButtonContainer = $(playBtnContainer);
 	}
+
+	Timeline.prototype.setPlaySpeed = function(speed){
+		this.playSpeed = speed;
+	};
 	
 	Timeline.prototype.draw = function(){
 		var self = this;
+
 		self.createDOM();
 	};
 	
 	Timeline.prototype.createDOM = function(){
 		var self = this;
 		
+		self.playButtonContainer.html('');
+
 		var playButton = $("<button>").attr("id", "play_button");
 		playButton.button({
 			icons:{
@@ -1266,9 +1279,8 @@ var chronograph = {};
 		});
 		
 		var playStep = function(){
-			var currentValue = parseInt(self.timelineContainer.slider("value"));
-			var stepSize = self.sliderRange[1]/self.playNumSteps;
-			var newValue = currentValue + stepSize;
+			var stepSize = self.sliderRange[1]/self.playNumSteps * self.playSpeed;
+			var newValue = self.currentValue + stepSize;
 			
 			if( newValue > parseInt(self.timelineContainer.slider("option", "max"))){
 				clearInterval(self.playIntHandler);
@@ -1279,6 +1291,7 @@ var chronograph = {};
 			}
 			else{
 				self.timelineContainer.slider("value", newValue);
+				self.currentValue = newValue;
 				self.slideCallback(self.timelineScale(newValue));
 			}
 		};
@@ -1286,9 +1299,8 @@ var chronograph = {};
 		playButton.click(function(){
 			if( self.playIntHandler == null ){
 				// Play!
-				var currentValue = parseInt(self.timelineContainer.slider("value"));
-				if( currentValue >= parseInt(self.timelineContainer.slider("option", "max")) - .05 ){
-					self.timelineContainer.slider("value", self.sliderRange[0]);
+				if( self.currentValue >= parseInt(self.timelineContainer.slider("option", "max")) - self.playSpeed ){
+					self.currentValue = 0;
 				}
 				self.playIntHandler = setInterval(playStep, self.playResolution);
 				$(this).button("option", {

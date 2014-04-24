@@ -77,6 +77,102 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
         });
     };
     
+
+    // Chronograph Setup
+    $scope.isEditMode = false;
+    $scope.playSpeed = 1;
+    var playSpeedScale = d3.scale.pow()
+                                    .exponent(2.5)
+                                     .domain([0, 100])
+                                     .range([0, 10]);
+
+    // Called when Edit button is clicked.
+    $scope.chronographEdit = function(event){
+        if( !$scope.graphObj || $scope.graphObj == undefined ){
+            console.error("Error: No graph is loaded, cannot change mode.");
+            return;
+        }
+
+        $scope.graphObj.setMode("edit");
+
+        $scope.isEditMode = true;
+    };
+
+    // Called when Save button is clicked.
+    $scope.chronographSave = function(){
+        if( !$scope.graphObj || $scope.graphObj == undefined || !$scope.graph || $scope.graph == undefined  ){
+            console.error("Error: No graph is loaded, cannot change mode.");
+            return;
+        }
+
+            var graphData = $scope.graphObj.exportData();
+            var graph = $scope.graph;
+            graph.data = JSON.stringify(graphData);
+            graph.format = chronograph.data.JSON; // Exported data is always in JSON for now.
+            
+            if (!graph.updated) {
+                graph.updated = [];
+            }
+            graph.updated.push(new Date().getTime());
+            
+            graph.$update(function() {
+                $scope.drawGraph(graph);
+
+                $scope.isEditMode = false;
+                $scope.graphObj.setMode("view");
+            });
+    };
+
+    // Used to draw the graph whenever it is loaded.
+    $scope.drawGraph = function(graph){
+        $scope.graphObj = chronograph.newGraph(graph._id, graph.name, graph.data, graph.format);
+            
+        $scope.graphObj.draw('#graph_container');
+        $scope.graphObj.setMode("view");
+
+        $scope.timeline = chronograph.newTimeline("#timeline_container", "#play_button_container", [0, 500], [0, $scope.graphObj.maxSteps], function(value){
+            $scope.graphObj.setArbitraryTimeStep(value);
+        });
+        $scope.timeline.draw();
+
+
+        // Set up play speed slider
+
+        $('#playSpeedSlider').slider({
+            max: 100,
+            value: 50,
+            slide: function(event, ui){
+                var value = $(this).slider("value");
+
+                // Make sure that Angular knows about the change...
+                $scope.$apply(function(){
+                    value = playSpeedScale(value);
+                    value = Math.floor(value*100)/100;
+                    $scope.playSpeed = value;
+                    $scope.timeline.setPlaySpeed(value);
+                });
+            }
+        });
+    }
+
+    $scope.chronographCancel = function(){
+        if( !$scope.graphObj || $scope.graphObj == undefined ){
+            console.error("Error: No graph is loaded, cannot change mode.");
+            return;
+        }
+
+        Graphs.get({
+            graphId: $scope.graphObj.id
+        }, function(graph) {
+            $scope.graph = graph;
+            
+            $scope.drawGraph(graph);
+            
+            $scope.isEditMode = false;
+            $scope.graphObj.setMode("view");
+
+        });
+    };
     
     $scope.chronograph = function(){
     	
@@ -84,20 +180,9 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             graphId: $stateParams.graphId
         }, function(graph) {
             $scope.graph = graph;
-            var graphObj;
             
-            graphObj = chronograph.newGraph(graph._id, graph.name, graph.data, graph.format);
-            
-            graphObj.draw('#graph_container');
-            graphObj.setMode("view");
-
-            var timeline = chronograph.newTimeline("#timeline_container", "#play_button_container", [0, 500], [0, graphObj.maxSteps], function(value){
-                graphObj.setArbitraryTimeStep(value);
-            });
-            timeline.draw();
-            //gravity.load('#chronograph_container', graphObj);
+            $scope.drawGraph(graph);
         });
-    	
     };
     
     $scope.importTraversal = function(){

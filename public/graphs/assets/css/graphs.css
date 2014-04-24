@@ -225,3 +225,9 @@ div{
 			.toolbar-icon{
 				cursor: pointer;
 			}
+
+			#playSpeedSlider{
+				margin-bottom: 8px;
+			}
+
+
