@@ -231,3 +231,6 @@ div{
 			}
 
 
+tr.agent-row{
+	cursor: pointer;
+}

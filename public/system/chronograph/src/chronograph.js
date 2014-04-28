@@ -105,13 +105,40 @@ var chronograph = {};
 		this.start = start;
 		this.label = label;
 		this.steps = steps;
+
+
+		// Tracking Values - Do Not Export
 		this.currentNode = currentNode;
-		
+
 		this.svgCircle = null;
 		
 		this.selected = false;
 		this.unselectedOpacity = ".25";
+		// End Tracking Values
 	}
+
+	Agent.prototype.calculateTraversalMap = function(timestep){
+		var self = this;
+
+		var traversalMap = d3.map();
+
+		if( timestep > self.steps.length ){
+			timestep = self.steps.length;
+		}
+
+		var step;
+		for(var i=0;i<Math.floor(timestep);i++){
+			if( traversalMap.has(self.steps[i].to) ){
+				traversalMap.set(self.steps[i].to, traversalMap.get(self.steps[i].to) + 1);
+			}
+			else{
+				traversalMap.set(self.steps[i].to, 1);
+			}
+			
+		}
+
+		return traversalMap;
+	};
 	
 	Agent.prototype.exportObj = function(){
 		var self = this;
@@ -121,6 +148,7 @@ var chronograph = {};
 		obj.start = self.start;
 		obj.label = self.label;
 		obj.steps = self.steps;
+
 		
 		return obj;
 	};
@@ -243,12 +271,15 @@ var chronograph = {};
 		this.y = parseInt(y);
 		this.color = color;
 		this.label = label;
-		
+
+		// Tracking Values - Do not export
+		this.selected = false;
+
 		this.svgGroup = null;
 		this.svgLabel = null;
 		this.svgCircle = null;
 
-		this.selected = false;
+		// End Tracking Values
 		
 		// Maps id => Edge where Edge is the edge connecting this node to the node with id
 		this.edges = {};
@@ -423,7 +454,10 @@ var chronograph = {};
 		self.currentScale = 1;
 		
 		self.currentStep = 0;
+		self.calculatedStep = 0;
 		self.maxSteps = 0;
+		self.traversalMap = {};
+		self.maxTraverse = 0;
 		
 		self.selectedNode = null;
 		
@@ -569,6 +603,36 @@ var chronograph = {};
 		self.maxSteps = max;
 	};
 	
+	Graph.prototype.constructTraversalMap = function(){
+		var self = this;
+
+		self.traversalMap = {};
+		for(var index in self.nodes){
+			self.traversalMap[self.nodes[index].id] = 0;
+		}
+	};
+
+	Graph.prototype.calculateTraversalMap = function(timestep){
+		var self = this;
+
+		if( self.traversalMap == null || d3.keys(self.traversalMap) == 0 ){
+			self.constructTraversalMap();
+		}
+
+
+		self.maxTraverse = 0;
+
+		//N^2 is scary for real time...  Might blow up for big graphs...
+		for(var index in self.agents){
+			var agentMap = self.agents[index].calculateTraversalMap(timestep);
+			agentMap.forEach(function(key, value){
+				self.traversalMap[key] += value;
+			});
+		}
+
+		self.calculatedStep = Math.floor(timestep);
+	};
+
 	Graph.prototype.setArbitraryTimeStep = function(step){
 		var self = this;
 		
@@ -578,6 +642,10 @@ var chronograph = {};
 			self.agents[index].setToTimeStep(step, self.nodes);
 		}
 		
+		if( Math.floor(self.currentStep) != self.calculatedStep ){
+			self.calculateTraversalMap(self.currentStep);
+		}
+
 		self.graphTimestep.text("Timestep: " + Math.round(step*100)/100);
 	};
 	
@@ -1322,6 +1390,7 @@ var chronograph = {};
 			max: self.sliderMax,
 			slide: function(event, ui){
 				var value = $(this).slider("value");
+				self.currentValue = value;
 				self.slideCallback(self.timelineScale(value));
 			}
 		});

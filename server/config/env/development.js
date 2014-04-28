@@ -3,7 +3,7 @@
 module.exports = {
     db: 'mongodb://localhost/mean-dev',
     app: {
-        name: 'MEAN - A Modern Stack - Development'
+        name: 'GravityJS - A graph manipulation platform - DEVELOPMENT'
     },
     facebook: {
         clientID: '238811112971287',

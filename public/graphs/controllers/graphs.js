@@ -5,6 +5,8 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
     
     // Default to JSON format
     var DEFAULT_FORMAT = 'JSON';
+    var PLAYBACK_ARBITRARY = 'ARB';
+    var PLAYBACK_REAL = 'REAL';
     $scope.format = DEFAULT_FORMAT;
     
     $scope.create = function() {
@@ -130,6 +132,8 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
         $scope.graphObj.draw('#graph_container');
         $scope.graphObj.setMode("view");
 
+        //$scope.graphObj.calculateTraversalMap(15);
+
         $scope.timeline = chronograph.newTimeline("#timeline_container", "#play_button_container", [0, 500], [0, $scope.graphObj.maxSteps], function(value){
             $scope.graphObj.setArbitraryTimeStep(value);
         });
@@ -173,15 +177,42 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
 
         });
     };
+
+    $scope.isSelectedAgent = function(id){
+        if( id in $scope.selectedAgents )
+            return true;
+        else
+            return false;
+    }
+
+    $scope.agentClick = function(id){
+        if( !$scope.graphObj || $scope.graphObj == undefined ){
+            console.error("Error: No graph is loaded, cannot perform this action.");
+            return;
+        }
+
+        if( id in $scope.selectedAgents ){
+            delete $scope.selectedAgents[id];
+        }
+        else{
+            $scope.selectedAgents[id] = true;
+        }
+        $scope.graphObj.agents[id].select($scope.graphObj.agents);
+    };
     
     $scope.chronograph = function(){
     	
+        $scope.selectedAgents = {};
+        $scope.playback = PLAYBACK_ARBITRARY;
+
     	Graphs.get({
             graphId: $stateParams.graphId
         }, function(graph) {
             $scope.graph = graph;
             
             $scope.drawGraph(graph);
+
+            $scope.agents = $scope.graphObj.agents;
         });
     };
     
