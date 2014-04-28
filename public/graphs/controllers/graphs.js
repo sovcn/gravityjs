@@ -199,11 +199,29 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
         }
         $scope.graphObj.agents[id].select($scope.graphObj.agents);
     };
+
+    $scope.heatmapToggle = function(){
+
+        if( !$scope.graphObj || $scope.graphObj == undefined ){
+            console.error("Error: No graph is loaded, cannot perform this action.");
+            return;
+        }
+
+        if( $scope.heatmap ){
+            console.log("Heatmap.");
+            $scope.graphObj.enableHeatmap();
+        }
+        else{
+            console.log("No Heatmap.");
+            $scope.graphObj.disableHeatmap();
+        }
+    };
     
     $scope.chronograph = function(){
     	
         $scope.selectedAgents = {};
         $scope.playback = PLAYBACK_ARBITRARY;
+        $scope.heatmap = false;
 
     	Graphs.get({
             graphId: $stateParams.graphId

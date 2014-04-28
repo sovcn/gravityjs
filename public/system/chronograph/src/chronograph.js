@@ -294,6 +294,13 @@ var chronograph = {};
 		this.svgLabel = label;
 		this.svgCircle = circle;
 	};
+
+	Node.prototype.displayColor = function(color){
+		var self = this;
+		if( color != null && self.svgCircle != null ){
+			self.svgCircle.attr("fill", color);
+		}
+	};
 	
 	Node.prototype.remove = function(){
 		this.svgGroup.remove();
@@ -457,6 +464,7 @@ var chronograph = {};
 		self.calculatedStep = 0;
 		self.maxSteps = 0;
 		self.traversalMap = {};
+		self.heatmap = false; // flag for whether or not to display a heatmap with the nodes of traversal data.
 		self.maxTraverse = 0;
 		
 		self.selectedNode = null;
@@ -615,9 +623,7 @@ var chronograph = {};
 	Graph.prototype.calculateTraversalMap = function(timestep){
 		var self = this;
 
-		if( self.traversalMap == null || d3.keys(self.traversalMap) == 0 ){
-			self.constructTraversalMap();
-		}
+		self.constructTraversalMap();
 
 
 		self.maxTraverse = 0;
@@ -627,10 +633,56 @@ var chronograph = {};
 			var agentMap = self.agents[index].calculateTraversalMap(timestep);
 			agentMap.forEach(function(key, value){
 				self.traversalMap[key] += value;
+				if( self.traversalMap[key] > self.maxTraverse ){
+					self.maxTraverse = self.traversalMap[key];
+				}
 			});
 		}
 
 		self.calculatedStep = Math.floor(timestep);
+	};
+
+	Graph.prototype.colorizeTraverseHeatmap = function(){
+		var self = this;
+
+		var interpolator = d3.interpolateRgb("#5EA8E6", "#E69C5E");
+
+		if( self.traversalMap == null || d3.keys(self.traversalMap) == 0 ){
+			self.calculateTraversalMap(self.currentStep);
+		}
+
+		var scale = d3.scale.linear()
+					  .domain([0, self.maxTraverse])
+					  .range([0,1]);
+
+		var value, color;
+		for(var index in self.nodes){
+			value = self.traversalMap[self.nodes[index].id];
+			color = interpolator(scale(value));
+			self.nodes[index].displayColor(color);
+		}
+	};
+
+	Graph.prototype.colorizeNormal = function(){
+		var self = this;
+
+		for(var index in self.nodes){
+			self.nodes[index].displayColor(self.nodes[index].color);
+		}
+	};
+
+	Graph.prototype.enableHeatmap = function(){
+		var self = this;
+
+		self.heatmap = true;
+		self.colorizeTraverseHeatmap();
+	};
+
+	Graph.prototype.disableHeatmap = function(){
+		var self = this;
+
+		self.heatmap = false;
+		self.colorizeNormal();
 	};
 
 	Graph.prototype.setArbitraryTimeStep = function(step){
@@ -642,8 +694,9 @@ var chronograph = {};
 			self.agents[index].setToTimeStep(step, self.nodes);
 		}
 		
-		if( Math.floor(self.currentStep) != self.calculatedStep ){
+		if( self.heatmap && Math.floor(self.currentStep) != self.calculatedStep ){
 			self.calculateTraversalMap(self.currentStep);
+			self.colorizeTraverseHeatmap();
 		}
 
 		self.graphTimestep.text("Timestep: " + Math.round(step*100)/100);
