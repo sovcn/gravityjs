@@ -152,49 +152,28 @@ var chronograph = {};
 		
 		return obj;
 	};
-	
-	Agent.prototype.select = function(agents){
+
+	Agent.prototype.deEmphasize = function(){
 		var self = this;
-		
-		if( self.selected ){
-			// Unselect it
-			self.svgCircle.attr("stroke", "#777777");
-			self.svgCircle.attr("stroke-width", "1");
-			self.selected = false;
-			
-			var numSelected = 0;
-			for(var index in agents){
-				if( agents[index].selected == true )
-					numSelected++;
-			}
-			
-			
-			if( numSelected > 0 ){
-				self.svgCircle.attr("opacity", self.unselectedOpacity);
-			}
-			else{
-				for(var index in agents){
-					agents[index].svgCircle.attr("opacity", "1");
-				}
-			}
-			
-		}
-		else{
-			// Select it
-			self.selected = true;
-			
-			self.svgCircle.attr("stroke", "green");
-			self.svgCircle.attr("stroke-width", "2");
-			self.svgCircle.attr("opacity", "1");
-			
-			for(var index in agents){
-				var agent = agents[index];
-				if( !agent.selected ){	
-					agent.svgCircle.attr("opacity", self.unselectedOpacity);
-				}
-			}
-		}
-	};
+		self.svgCircle.attr("opacity", self.unselectedOpacity);
+	}
+
+	Agent.prototype.select = function(){
+		var self = this;
+
+		self.svgCircle.attr("stroke", "green");
+		self.svgCircle.attr("stroke-width", "2");
+		self.svgCircle.attr("opacity", "1");
+		self.selected = true;
+	}
+
+	Agent.prototype.unselect = function(){
+		var self = this;
+		self.svgCircle.attr("stroke", "#777777");
+		self.svgCircle.attr("stroke-width", "1");
+		self.svgCircle.attr("opacity", "1");
+		self.selected = false;
+	}
 	
 	Agent.prototype.setPosition = function(x, y){
 		
@@ -464,12 +443,20 @@ var chronograph = {};
 		self.calculatedStep = 0;
 		self.maxSteps = 0;
 		self.traversalMap = {};
+		self.selectedAgents = d3.set();
 		self.heatmap = false; // flag for whether or not to display a heatmap with the nodes of traversal data.
 		self.maxTraverse = 0;
 		
 		self.selectedNode = null;
+
+		self.globalCallback = function(){};
 		
 	}
+
+	Graph.prototype.setGlobalCallback = function(f){
+		var self = this;
+		self.globalCallback = f;
+	};
 
 	Graph.prototype.setMode = function(mode){
 		var self = this;
@@ -630,13 +617,15 @@ var chronograph = {};
 
 		//N^2 is scary for real time...  Might blow up for big graphs...
 		for(var index in self.agents){
-			var agentMap = self.agents[index].calculateTraversalMap(timestep);
-			agentMap.forEach(function(key, value){
-				self.traversalMap[key] += value;
-				if( self.traversalMap[key] > self.maxTraverse ){
-					self.maxTraverse = self.traversalMap[key];
-				}
-			});
+			if( self.selectedAgents.size() == 0 || self.selectedAgents.has(index) ){
+				var agentMap = self.agents[index].calculateTraversalMap(timestep);
+				agentMap.forEach(function(key, value){
+					self.traversalMap[key] += value;
+					if( self.traversalMap[key] > self.maxTraverse ){
+						self.maxTraverse = self.traversalMap[key];
+					}
+				});
+			}
 		}
 
 		self.calculatedStep = Math.floor(timestep);
@@ -721,7 +710,7 @@ var chronograph = {};
 									    .attr("stroke-width", 1)
 									    .attr("stroke", "#777777")
 									    .on("click", function(d){
-									    	d.select(self.agents);
+									    	self.toggleAgent(d.id);
 											d3.event.stopPropagation();
 									    });
 			
@@ -1000,6 +989,39 @@ var chronograph = {};
 			node.select();
 		}
 		
+	};
+
+	Graph.prototype.toggleAgent = function(id){
+		var self = this;
+
+		if( self.selectedAgents.has(id) ){
+			self.agents[id].unselect();
+			self.selectedAgents.remove(id);
+		}
+		else{
+			self.agents[id].select();
+			self.selectedAgents.add(id);
+		}
+
+		if( self.selectedAgents.size() > 0 ){
+			for(var index in self.agents){
+				if( !self.selectedAgents.has(index) ){
+					self.agents[index].deEmphasize();
+				}
+			}
+		}
+		else{
+			for(var index in self.agents){
+				self.agents[index].unselect();
+			}
+		}
+
+		if( self.heatmap ){
+			self.calculateTraversalMap(self.currentStep);
+			self.colorizeTraverseHeatmap();
+		}
+		
+		self.globalCallback();
 	};
 	
 	Graph.prototype.addEdge = function(fromNode, toNode){
@@ -1438,13 +1460,17 @@ var chronograph = {};
 		});
 		
 		self.playButtonContainer.append(playButton);
-		
+
+		var updateStep = function(element){
+			var value = $(element).slider("value");
+			self.currentValue = value;
+			self.slideCallback(self.timelineScale(value));
+		}
+
 		self.timelineContainer.slider({
 			max: self.sliderMax,
-			slide: function(event, ui){
-				var value = $(this).slider("value");
-				self.currentValue = value;
-				self.slideCallback(self.timelineScale(value));
+			change: function(event, ui){
+				updateStep(this);
 			}
 		});
 		
@@ -1487,8 +1513,6 @@ var chronograph = {};
 	    };
 	
 	chronograph.parseXml = function(xmlStr){
-		
-		
 		var xml = chronograph.textToXML(xmlStr);
 		var doc = new XmlDocument(xml);
 		try{

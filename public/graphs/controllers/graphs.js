@@ -179,7 +179,12 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
     };
 
     $scope.isSelectedAgent = function(id){
-        if( id in $scope.selectedAgents )
+        if( !$scope.graphObj || $scope.graphObj == undefined ){
+            console.error("Error: No graph is loaded, cannot perform this action.");
+            return;
+        }
+
+        if( $scope.graphObj.selectedAgents.has(id) )
             return true;
         else
             return false;
@@ -191,13 +196,8 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             return;
         }
 
-        if( id in $scope.selectedAgents ){
-            delete $scope.selectedAgents[id];
-        }
-        else{
-            $scope.selectedAgents[id] = true;
-        }
-        $scope.graphObj.agents[id].select($scope.graphObj.agents);
+        
+        $scope.graphObj.toggleAgent(id);
     };
 
     $scope.heatmapToggle = function(){
@@ -217,9 +217,20 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
         }
     };
     
+    //https://coderwall.com/p/ngisma
+    $scope.safeApply = function(fn) {
+      var phase = this.$root.$$phase;
+      if(phase == '$apply' || phase == '$digest') {
+        if(fn && (typeof(fn) === 'function')) {
+          fn();
+        }
+      } else {
+        this.$apply(fn);
+      }
+    };
+
     $scope.chronograph = function(){
     	
-        $scope.selectedAgents = {};
         $scope.playback = PLAYBACK_ARBITRARY;
         $scope.heatmap = false;
 
@@ -229,6 +240,15 @@ angular.module('mean.graphs').controller('GraphsController', ['$scope', '$stateP
             $scope.graph = graph;
             
             $scope.drawGraph(graph);
+
+            if( !$scope.graphObj || $scope.graphObj == undefined ){
+                console.error("Error: No graph is loaded, cannot perform this action.");
+                return;
+            }
+
+            $scope.graphObj.setGlobalCallback(function(){
+                $scope.safeApply();
+            })
 
             $scope.agents = $scope.graphObj.agents;
         });
